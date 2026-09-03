@@ -1,2 +1,6 @@
 .vscode/
 *.bak
+
+# METS de exemplo ficam locais: podem conter dados pessoais reais
+METS*.xml
+*.mets
