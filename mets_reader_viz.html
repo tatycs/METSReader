@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Resumo METS (por objeto)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 1rem 1.5rem;
+      background: #111827;
+      color: #e5e7eb;
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      margin-bottom: 0.25rem;
+    }
+
+    h2 {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      border-bottom: 1px solid #374151;
+      padding-bottom: 0.25rem;
+    }
+
+    h3 {
+      margin-top: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .controls {
+      margin: 0.75rem 0 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .file-label {
+      padding: 0.4rem 0.7rem;
+      border-radius: 0.5rem;
+      border: 1px solid #4b5563;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .file-label:hover {
+      background: #1f2937;
+    }
+
+    #xmlFile {
+      display: none;
+    }
+
+    .info {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    .error {
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      background: #7f1d1d;
+      color: #fee2e2;
+      font-size: 0.85rem;
+    }
+
+    #output {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 0.75rem;
+      background: #020617;
+      border: 1px solid #1f2937;
+      font-size: 0.85rem;
+      max-height: 80vh;
+      overflow: auto;
+    }
+
+    ul {
+      margin: 0.25rem 0 0.25rem 1.25rem;
+      padding-left: 0;
+      list-style: disc;
+    }
+
+    li {
+      margin: 0.1rem 0;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.05rem 0.35rem;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      border: 1px solid #4b5563;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-left: 0.25rem;
+      color: #9ca3af;
+    }
+
+    .badge-premis {
+      border-color: #a5b4fc;
+      color: #c4b5fd;
+    }
+
+    .badge-dc {
+      border-color: #6ee7b7;
+      color: #a7f3d0;
+    }
+
+    .section-block {
+      margin-bottom: 0.75rem;
+    }
+
+    .obj-block {
+      margin-bottom: 0.6rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: 0.5rem;
+      background: #020617;
+      border: 1px solid #4b5563;
+    }
+
+    .small {
+      font-size: 0.78rem;
+      color: #9ca3af;
+    }
+
+    .highlight-id {
+      font-family: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.8rem;
+      color: #e5e7eb;
+    }
+
+    a {
+      color: #38bdf8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .ext-toggle {
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 0.25rem;
+      user-select: none;
+    }
+
+    .ext-toggle::before {
+      content: "[+]";
+      margin-right: 0.25rem;
+    }
+
+    .ext-toggle.open::before {
+      content: "[-]";
+    }
+
+    .ext-details {
+      margin-top: 0.2rem;
+      display: none;
+    }
+
+    .ext-details ul {
+      list-style: none;
+      margin-left: 1rem;
+    }
+
+    .ext-details li {
+      margin: 0.08rem 0;
+      font-size: 0.8rem;
+    }
+
+    .field-name {
+      color: #9ca3af;
+      font-weight: 500;
+    }
+
+    .field-value {
+      color: #e5e7eb;
+      margin-left: 0.25rem;
+    }
+
+    /* Overview cards */
+    .overview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .metric-card {
+      min-width: 140px;
+      padding: 0.5rem 0.7rem;
+      border-radius: 0.6rem;
+      border: 1px solid #374151;
+      background: radial-gradient(circle at top left, #111827, #020617);
+    }
+
+    .metric-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .legend {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-bottom: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .legend-label {
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.7rem;
+    }
+
+    /* details/summary para leitura progressiva */
+    details {
+      margin: 0.4rem 0;
+      border-radius: 0.45rem;
+      border: 1px solid #1f2937;
+      background: #020617;
+      padding: 0.25rem 0.4rem 0.4rem;
+    }
+
+    details > summary {
+      cursor: pointer;
+      list-style: none;
+      font-size: 0.8rem;
+      color: #e5e7eb;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    details > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details > summary::before {
+      content: "▶";
+      font-size: 0.55rem;
+      transform-origin: center;
+      transition: transform 0.15s ease-out;
+      color: #9ca3af;
+    }
+
+    details[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .summary-pill {
+      padding: 0.05rem 0.35rem;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid #374151;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #9ca3af;
+    }
+
+    details > *:not(summary) {
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Resumo METS (por objeto / mets:file)</h1>
+  <div class="controls">
+    <label for="xmlFile" class="file-label">Selecionar METS.xml</label>
+    <input type="file" id="xmlFile" accept=".xml,.mets">
+    <span class="info">
+      O arquivo é processado localmente no navegador (nenhum dado é enviado).
+    </span>
+  </div>
+
+  <div id="error" class="error" style="display:none;"></div>
+
+  <div id="output" class="info">
+    Selecione um arquivo METS.xml para visualizar um resumo por objeto (mets:file).
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    const METS_NS = "http://www.loc.gov/METS/";
+    const PREMIS_NS = "http://www.loc.gov/premis/v3";
+    const DC_BASE = "purl.org/dc";
+    const XLINK_NS = "http://www.w3.org/1999/xlink";
+
+    const fileInput = document.getElementById("xmlFile");
+    const output = document.getElementById("output");
+    const errorBox = document.getElementById("error");
+
+    const Utils = {
+      firstChildByLocalNameNS(parent, localName, ns) {
+        const children = parent ? parent.children || [] : [];
+        for (let i = 0; i < children.length; i++) {
+          const c = children[i];
+          if (c.localName === localName && (!ns || c.namespaceURI === ns)) {
+            return c;
+          }
+        }
+        return null;
+      },
+
+      findFirstDescendantByLocalName(parent, localName, ns) {
+        if (!parent) return null;
+        const elems = parent.getElementsByTagNameNS(ns || "*", localName);
+        return elems[0] || null;
+      },
+
+      textOf(elem) {
+        return elem ? (elem.textContent || "").trim() : "";
+      },
+
+      attrsToString(elem, maxLen) {
+        if (!elem || !elem.attributes) return "";
+        const parts = [];
+        for (let i = 0; i < elem.attributes.length; i++) {
+          const a = elem.attributes[i];
+          let val = a.value || "";
+          if (maxLen && val.length > maxLen) {
+            val = val.slice(0, maxLen) + "…";
+          }
+          parts.push(a.name + '="' + val + '"');
+        }
+        return parts.join(" ");
+      },
+
+      clearError() {
+        errorBox.style.display = "none";
+        errorBox.textContent = "";
+      },
+
+      showError(msg) {
+        errorBox.style.display = "block";
+        errorBox.textContent = msg;
+        output.textContent = "";
+      }
+    };
+
+    const Highlighter = {
+      styleNameValuePairs(root) {
+        const lis = root.querySelectorAll("li");
+        lis.forEach((li) => {
+          if (li.children.length > 0) return;
+          const text = (li.textContent || "").trim();
+          const idx = text.indexOf(":");
+          if (idx <= 0 || idx >= text.length - 1) return;
+          const label = text.slice(0, idx).trim();
+          const value = text.slice(idx + 1).trim();
+          if (!label || !value) return;
+          li.textContent = "";
+          const spanLabel = document.createElement("span");
+          spanLabel.className = "field-name";
+          spanLabel.textContent = label + ":";
+          const spanValue = document.createElement("span");
+          spanValue.className = "field-value";
+          spanValue.textContent = " " + value;
+          li.appendChild(spanLabel);
+          li.appendChild(spanValue);
+        });
+      }
+    };
+
+    const IndexBuilder = {
+      buildDmdIndex(metsRoot) {
+        const dmdSecs = metsRoot.getElementsByTagNameNS(METS_NS, "dmdSec");
+        const index = {};
+        for (let i = 0; i < dmdSecs.length; i++) {
+          const dmd = dmdSecs[i];
+          const id = dmd.getAttribute("ID") || "dmdSec_" + (i + 1);
+          const mdWrap = Utils.firstChildByLocalNameNS(dmd, "mdWrap", METS_NS);
+          const mdtypeRaw = mdWrap
+            ? mdWrap.getAttribute("MDTYPE") ||
+              mdWrap.getAttribute("OTHERMDTYPE") ||
+              ""
+            : "";
+          const mdtype = (mdtypeRaw || "").toUpperCase();
+          const entry = {
+            id,
+            elem: dmd,
+            mdtypeRaw,
+            mdtypeUpper: mdtype,
+            dcList: null,
+            premisObjectElem: null
+          };
+          if (mdWrap) {
+            const xmlData = Utils.firstChildByLocalNameNS(mdWrap, "xmlData", METS_NS);
+            if (xmlData && xmlData.firstElementChild) {
+              const child = xmlData.firstElementChild;
+              if (mdtype === "DC") {
+                entry.dcList = Renderer.buildDublinCoreSummaryList(child);
+              }
+              if (child.namespaceURI === PREMIS_NS && child.localName === "object") {
+                entry.premisObjectElem = child;
+              }
+            }
+          }
+          index[id] = entry;
+        }
+        return index;
+      },
+
+      buildAmdIndex(metsRoot) {
+        const amdSecs = metsRoot.getElementsByTagNameNS(METS_NS, "amdSec");
+        const index = {};
+        for (let i = 0; i < amdSecs.length; i++) {
+          const amd = amdSecs[i];
+          const amdId = amd.getAttribute("ID") || "amdSec_" + (i + 1);
+          const entry = {
+            id: amdId,
+            elem: amd,
+            mdBlocks: []
+          };
+          const children = amd.children || [];
+          for (let j = 0; j < children.length; j++) {
+            const child = children[j];
+            const localName = child.localName;
+            if (!["techMD", "digiprovMD", "rightsMD", "sourceMD"].includes(localName))
+              continue;
+            const mdId = child.getAttribute("ID") || localName + "_" + (j + 1);
+            const mdWrap = Utils.firstChildByLocalNameNS(child, "mdWrap", METS_NS);
+            const mdtypeRaw = mdWrap
+              ? mdWrap.getAttribute("MDTYPE") ||
+                mdWrap.getAttribute("OTHERMDTYPE") ||
+                ""
+              : "";
+            const block = {
+              type: localName,
+              id: mdId,
+              mdtypeRaw,
+              premisObjectElem: null,
+              premisEventElems: [],
+              premisAgentElems: []
+            };
+            if (mdWrap) {
+              const xmlData = Utils.firstChildByLocalNameNS(mdWrap, "xmlData", METS_NS);
+              if (xmlData && xmlData.firstElementChild) {
+                const objElems = xmlData.getElementsByTagNameNS(PREMIS_NS, "object");
+                if (objElems.length > 0) block.premisObjectElem = objElems[0];
+                const evElems = xmlData.getElementsByTagNameNS(PREMIS_NS, "event");
+                for (let k = 0; k < evElems.length; k++) {
+                  block.premisEventElems.push(evElems[k]);
+                }
+                const agElems = xmlData.getElementsByTagNameNS(PREMIS_NS, "agent");
+                for (let k = 0; k < agElems.length; k++) {
+                  block.premisAgentElems.push(agElems[k]);
+                }
+              }
+            }
+            entry.mdBlocks.push(block);
+          }
+          index[amdId] = entry;
+        }
+        return index;
+      }
+    };
+
+    const Renderer = {
+      buildDublinCoreSummaryList(dcRoot) {
+        const list = document.createElement("ul");
+        const children = dcRoot.children || [];
+        for (let i = 0; i < children.length; i++) {
+          const c = children[i];
+          const ns = c.namespaceURI || "";
+          if (!ns.includes(DC_BASE)) continue;
+          const li = document.createElement("li");
+          const label = c.localName;
+          const value = (c.textContent || "").trim();
+          li.textContent = label + ": " + value;
+          list.appendChild(li);
+        }
+        if (!list.hasChildNodes()) return null;
+        return list;
+      },
+
+      buildPremisObjectSummaryList(objElem) {
+        const list = document.createElement("ul");
+        const objId =
+          Utils.firstChildByLocalNameNS(objElem, "objectIdentifier", PREMIS_NS) ||
+          Utils.findFirstDescendantByLocalName(objElem, "objectIdentifier", PREMIS_NS);
+        if (objId) {
+          const liParent = document.createElement("li");
+          liParent.textContent = "objectIdentifier";
+          const ulChild = document.createElement("ul");
+          const type = Utils.textOf(
+            Utils.firstChildByLocalNameNS(objId, "objectIdentifierType", PREMIS_NS)
+          );
+          const value = Utils.textOf(
+            Utils.firstChildByLocalNameNS(objId, "objectIdentifierValue", PREMIS_NS)
+          );
+          if (type) {
+            const liType = document.createElement("li");
+            liType.textContent = "objectIdentifierType: " + type;
+            ulChild.appendChild(liType);
+          }
+          if (value) {
+            const liVal = document.createElement("li");
+            liVal.textContent = "objectIdentifierValue: " + value;
+            ulChild.appendChild(liVal);
+          }
+          if (ulChild.hasChildNodes()) {
+            liParent.appendChild(ulChild);
+            list.appendChild(liParent);
+          }
+        }
+        const objChar = Utils.firstChildByLocalNameNS(
+          objElem,
+          "objectCharacteristics",
+          PREMIS_NS
+        );
+        if (objChar) {
+          const liOC = document.createElement("li");
+          liOC.textContent = "objectCharacteristics";
+          const ulOC = document.createElement("ul");
+          const compLevel = Utils.textOf(
+            Utils.firstChildByLocalNameNS(objChar, "compositionLevel", PREMIS_NS)
+          );
+          if (compLevel) {
+            const liComp = document.createElement("li");
+            liComp.textContent = "compositionLevel: " + compLevel;
+            ulOC.appendChild(liComp);
+          }
+          const fixity = Utils.firstChildByLocalNameNS(objChar, "fixity", PREMIS_NS);
+          if (fixity) {
+            const liFix = document.createElement("li");
+            liFix.textContent = "fixity";
+            const ulFix = document.createElement("ul");
+            const algo = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                fixity,
+                "messageDigestAlgorithm",
+                PREMIS_NS
+              )
+            );
+            const digest = Utils.textOf(
+              Utils.firstChildByLocalNameNS(fixity, "messageDigest", PREMIS_NS)
+            );
+            if (algo) {
+              const liAlgo = document.createElement("li");
+              liAlgo.textContent = "messageDigestAlgorithm: " + algo;
+              ulFix.appendChild(liAlgo);
+            }
+            if (digest) {
+              const liDigest = document.createElement("li");
+              liDigest.textContent = "messageDigest: " + digest;
+              ulFix.appendChild(liDigest);
+            }
+            if (ulFix.hasChildNodes()) liFix.appendChild(ulFix);
+            ulOC.appendChild(liFix);
+          }
+          const size = Utils.textOf(
+            Utils.firstChildByLocalNameNS(objChar, "size", PREMIS_NS)
+          );
+          if (size) {
+            const liSize = document.createElement("li");
+            liSize.textContent = "size: " + size;
+            ulOC.appendChild(liSize);
+          }
+          const format = Utils.firstChildByLocalNameNS(objChar, "format", PREMIS_NS);
+          if (format) {
+            const liFmt = document.createElement("li");
+            liFmt.textContent = "format";
+            const ulFmt = document.createElement("ul");
+            const formatDesignation = Utils.firstChildByLocalNameNS(
+              format,
+              "formatDesignation",
+              PREMIS_NS
+            );
+            if (formatDesignation) {
+              const liFD = document.createElement("li");
+              liFD.textContent = "formatDesignation";
+              const ulFD = document.createElement("ul");
+              const formatName = Utils.textOf(
+                Utils.firstChildByLocalNameNS(
+                  formatDesignation,
+                  "formatName",
+                  PREMIS_NS
+                )
+              );
+              const formatVersion = Utils.textOf(
+                Utils.firstChildByLocalNameNS(
+                  formatDesignation,
+                  "formatVersion",
+                  PREMIS_NS
+                )
+              );
+              if (formatName) {
+                const liFN = document.createElement("li");
+                liFN.textContent = "formatName: " + formatName;
+                ulFD.appendChild(liFN);
+              }
+              if (formatVersion) {
+                const liFV = document.createElement("li");
+                liFV.textContent = "formatVersion: " + formatVersion;
+                ulFD.appendChild(liFV);
+              }
+              if (ulFD.hasChildNodes()) {
+                liFD.appendChild(ulFD);
+                ulFmt.appendChild(liFD);
+              }
+            }
+            const formatRegistry = Utils.firstChildByLocalNameNS(
+              format,
+              "formatRegistry",
+              PREMIS_NS
+            );
+            if (formatRegistry) {
+              const liFR = document.createElement("li");
+              liFR.textContent = "formatRegistry";
+              const ulFR = document.createElement("ul");
+              const regName = Utils.textOf(
+                Utils.firstChildByLocalNameNS(
+                  formatRegistry,
+                  "formatRegistryName",
+                  PREMIS_NS
+                )
+              );
+              const regKey = Utils.textOf(
+                Utils.firstChildByLocalNameNS(
+                  formatRegistry,
+                  "formatRegistryKey",
+                  PREMIS_NS
+                )
+              );
+              if (regName) {
+                const liRegName = document.createElement("li");
+                liRegName.textContent = "formatRegistryName: " + regName;
+                ulFR.appendChild(liRegName);
+              }
+              if (regKey) {
+                const liRegKey = document.createElement("li");
+                liRegKey.textContent = "formatRegistryKey: ";
+                let pronomUrl = null;
+                if (regKey.startsWith("fmt/")) {
+                  pronomUrl = "http://nationalarchives.gov.uk/PRONOM/" + regKey;
+                } else if (regKey.startsWith("x-fmt/")) {
+                  pronomUrl =
+                    "https://www.nationalarchives.gov.uk/PRONOM/" + regKey;
+                }
+                if (pronomUrl) {
+                  const a = document.createElement("a");
+                  a.href = pronomUrl;
+                  a.target = "_blank";
+                  a.rel = "noopener noreferrer";
+                  a.textContent = regKey;
+                  liRegKey.appendChild(a);
+                } else {
+                  liRegKey.appendChild(document.createTextNode(regKey));
+                }
+                ulFR.appendChild(liRegKey);
+              }
+              if (ulFR.hasChildNodes()) {
+                liFR.appendChild(ulFR);
+                ulFmt.appendChild(liFR);
+              }
+            }
+            if (ulFmt.hasChildNodes()) {
+              liFmt.appendChild(ulFmt);
+              ulOC.appendChild(liFmt);
+            }
+          }
+          const creatingApp = Utils.firstChildByLocalNameNS(
+            objChar,
+            "creatingApplication",
+            PREMIS_NS
+          );
+          if (creatingApp) {
+            const liCA = document.createElement("li");
+            liCA.textContent = "creatingApplication";
+            const ulCA = document.createElement("ul");
+            const dateCreated = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                creatingApp,
+                "dateCreatedByApplication",
+                PREMIS_NS
+              )
+            );
+            if (dateCreated) {
+              const liDate = document.createElement("li");
+              liDate.textContent = "dateCreatedByApplication: " + dateCreated;
+              ulCA.appendChild(liDate);
+            }
+            const appName = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                creatingApp,
+                "creatingApplicationName",
+                PREMIS_NS
+              )
+            );
+            const appVersion = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                creatingApp,
+                "creatingApplicationVersion",
+                PREMIS_NS
+              )
+            );
+            if (appName) {
+              const liAppName = document.createElement("li");
+              liAppName.textContent = "creatingApplicationName: " + appName;
+              ulCA.appendChild(liAppName);
+            }
+            if (appVersion) {
+              const liAppVer = document.createElement("li");
+              liAppVer.textContent = "creatingApplicationVersion: " + appVersion;
+              ulCA.appendChild(liAppVer);
+            }
+            if (ulCA.hasChildNodes()) {
+              liCA.appendChild(ulCA);
+              ulOC.appendChild(liCA);
+            }
+          }
+          const objExt = Utils.firstChildByLocalNameNS(
+            objChar,
+            "objectCharacteristicsExtension",
+            PREMIS_NS
+          );
+          if (objExt) {
+            const extChildren = objExt.children || [];
+            for (let i = 0; i < extChildren.length; i++) {
+              const extChild = extChildren[i];
+              const qName =
+                (extChild.prefix ? extChild.prefix + ":" : "") + extChild.localName;
+              const liExt = document.createElement("li");
+              const toggle = document.createElement("span");
+              toggle.className = "ext-toggle";
+              toggle.title = "Mostrar/ocultar detalhes";
+              const label = document.createElement("span");
+              label.textContent = "objectCharacteristicsExtension (" + qName + ")";
+              liExt.appendChild(toggle);
+              liExt.appendChild(label);
+              const details = document.createElement("div");
+              details.className = "ext-details";
+              const ulExt = document.createElement("ul");
+              const extGrandChildren = extChild.children || [];
+              if (extGrandChildren.length === 0) {
+                const liSimple = document.createElement("li");
+                const attrsStr = Utils.attrsToString(extChild, 400);
+                const txt = (extChild.textContent || "").trim();
+                let line = "*" + qName;
+                if (attrsStr) line += ": " + attrsStr;
+                if (txt) line += (attrsStr ? " " : ": ") + txt;
+                liSimple.textContent = line;
+                ulExt.appendChild(liSimple);
+              } else {
+                for (let j = 0; j < extGrandChildren.length; j++) {
+                  const gc = extGrandChildren[j];
+                  const gcQName =
+                    (gc.prefix ? gc.prefix + ":" : "") + gc.localName;
+                  const gcAttrs = Utils.attrsToString(gc, 200);
+                  const liGc = document.createElement("li");
+                  let line = "*" + gcQName;
+                  if (gcAttrs) line += ": " + gcAttrs;
+                  liGc.textContent = line;
+                  const gcChildren = gc.children || [];
+                  if (gcChildren.length > 0) {
+                    const innerUl = document.createElement("ul");
+                    for (let k = 0; k < gcChildren.length; k++) {
+                      const gg = gcChildren[k];
+                      const ggQName =
+                        (gg.prefix ? gg.prefix + ":" : "") + gg.localName;
+                      const ggAttrs = Utils.attrsToString(gg, 200);
+                      const ggText = (gg.textContent || "").trim();
+                      const liGg = document.createElement("li");
+                      let line2 = "-" + ggQName;
+                      const bits = [];
+                      if (ggAttrs) bits.push(ggAttrs);
+                      if (ggText) bits.push(ggText);
+                      if (bits.length) line2 += ": " + bits.join(" ");
+                      liGg.textContent = line2;
+                      innerUl.appendChild(liGg);
+                    }
+                    liGc.appendChild(innerUl);
+                  }
+                  ulExt.appendChild(liGc);
+                }
+              }
+              details.appendChild(ulExt);
+              liExt.appendChild(details);
+              function toggleDetails() {
+                const open = toggle.classList.toggle("open");
+                details.style.display = open ? "block" : "none";
+              }
+              toggle.addEventListener("click", toggleDetails);
+              label.addEventListener("click", toggleDetails);
+              ulOC.appendChild(liExt);
+            }
+          }
+          if (ulOC.hasChildNodes()) {
+            liOC.appendChild(ulOC);
+            list.appendChild(liOC);
+          }
+        }
+        const originalName = Utils.textOf(
+          Utils.firstChildByLocalNameNS(objElem, "originalName", PREMIS_NS)
+        );
+        if (originalName) {
+          const liOrig = document.createElement("li");
+          liOrig.textContent = "originalName: " + originalName;
+          list.appendChild(liOrig);
+        }
+        const rel = Utils.firstChildByLocalNameNS(
+          objElem,
+          "relationship",
+          PREMIS_NS
+        );
+        if (rel) {
+          const liRel = document.createElement("li");
+          liRel.textContent = "relationship";
+          const ulRel = document.createElement("ul");
+          const relType = Utils.textOf(
+            Utils.firstChildByLocalNameNS(rel, "relationshipType", PREMIS_NS)
+          );
+          const relSubType = Utils.textOf(
+            Utils.firstChildByLocalNameNS(rel, "relationshipSubType", PREMIS_NS)
+          );
+          if (relType || relSubType) {
+            const liHead = document.createElement("li");
+            liHead.textContent =
+              "relationshipType / relationshipSubType: " +
+              (relType || "") +
+              (relSubType ? " / " + relSubType : "");
+            ulRel.appendChild(liHead);
+          }
+          const relObjId = Utils.firstChildByLocalNameNS(
+            rel,
+            "relatedObjectIdentifier",
+            PREMIS_NS
+          );
+          if (relObjId) {
+            const rType = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                relObjId,
+                "relatedObjectIdentifierType",
+                PREMIS_NS
+              )
+            );
+            const rVal = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                relObjId,
+                "relatedObjectIdentifierValue",
+                PREMIS_NS
+              )
+            );
+            if (rType || rVal) {
+              const liRelObj = document.createElement("li");
+              liRelObj.textContent =
+                "relatedObjectIdentifier: " +
+                (rType ? rType + " = " : "") +
+                (rVal || "");
+              ulRel.appendChild(liRelObj);
+            }
+          }
+          const relEvId = Utils.firstChildByLocalNameNS(
+            rel,
+            "relatedEventIdentifier",
+            PREMIS_NS
+          );
+          if (relEvId) {
+            const eType = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                relEvId,
+                "relatedEventIdentifierType",
+                PREMIS_NS
+              )
+            );
+            const eVal = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                relEvId,
+                "relatedEventIdentifierValue",
+                PREMIS_NS
+              )
+            );
+            if (eType || eVal) {
+              const liRelEv = document.createElement("li");
+              liRelEv.textContent =
+                "relatedEventIdentifier: " +
+                (eType ? eType + " = " : "") +
+                (eVal || "");
+              ulRel.appendChild(liRelEv);
+            }
+          }
+          if (ulRel.hasChildNodes()) {
+            liRel.appendChild(ulRel);
+            list.appendChild(liRel);
+          }
+        }
+        if (!list.hasChildNodes()) return null;
+        return list;
+      },
+
+      buildPremisEventSummaryList(evElem) {
+        const list = document.createElement("ul");
+        const evIdElem = Utils.firstChildByLocalNameNS(
+          evElem,
+          "eventIdentifier",
+          PREMIS_NS
+        );
+        if (evIdElem) {
+          const liParent = document.createElement("li");
+          liParent.textContent = "eventIdentifier";
+          const ulChild = document.createElement("ul");
+          const type = Utils.textOf(
+            Utils.firstChildByLocalNameNS(
+              evIdElem,
+              "eventIdentifierType",
+              PREMIS_NS
+            )
+          );
+          const value = Utils.textOf(
+            Utils.firstChildByLocalNameNS(
+              evIdElem,
+              "eventIdentifierValue",
+              PREMIS_NS
+            )
+          );
+          if (type) {
+            const liType = document.createElement("li");
+            liType.textContent = "eventIdentifierType: " + type;
+            ulChild.appendChild(liType);
+          }
+          if (value) {
+            const liVal = document.createElement("li");
+            liVal.textContent = "eventIdentifierValue: " + value;
+            ulChild.appendChild(liVal);
+          }
+          if (ulChild.hasChildNodes()) {
+            liParent.appendChild(ulChild);
+            list.appendChild(liParent);
+          }
+        }
+        const evType = Utils.textOf(
+          Utils.firstChildByLocalNameNS(evElem, "eventType", PREMIS_NS)
+        );
+        if (evType) {
+          const liType = document.createElement("li");
+          liType.textContent = "eventType: " + evType;
+          list.appendChild(liType);
+        }
+        const evDateTime = Utils.textOf(
+          Utils.firstChildByLocalNameNS(evElem, "eventDateTime", PREMIS_NS)
+        );
+        if (evDateTime) {
+          const liDT = document.createElement("li");
+          liDT.textContent = "eventDateTime: " + evDateTime;
+          list.appendChild(liDT);
+        }
+        const evDetail = Utils.textOf(
+          Utils.firstChildByLocalNameNS(evElem, "eventDetail", PREMIS_NS)
+        );
+        if (evDetail) {
+          const liDet = document.createElement("li");
+          liDet.textContent = "eventDetail: " + evDetail;
+          list.appendChild(liDet);
+        }
+        const evOutInfo = Utils.firstChildByLocalNameNS(
+          evElem,
+          "eventOutcomeInformation",
+          PREMIS_NS
+        );
+        if (evOutInfo) {
+          const liOut = document.createElement("li");
+          liOut.textContent = "eventOutcomeInformation";
+          const ulOut = document.createElement("ul");
+          const evOutcome = Utils.textOf(
+            Utils.firstChildByLocalNameNS(evOutInfo, "eventOutcome", PREMIS_NS)
+          );
+          if (evOutcome) {
+            const liO = document.createElement("li");
+            liO.textContent = "eventOutcome: " + evOutcome;
+            ulOut.appendChild(liO);
+          }
+          const evOutDetail = Utils.firstChildByLocalNameNS(
+            evOutInfo,
+            "eventOutcomeDetail",
+            PREMIS_NS
+          );
+          if (evOutDetail) {
+            const liOD = document.createElement("li");
+            liOD.textContent = "eventOutcomeDetail";
+            const ulOD = document.createElement("ul");
+            const note = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                evOutDetail,
+                "eventOutcomeDetailNote",
+                PREMIS_NS
+              )
+            );
+            if (note) {
+              const liNote = document.createElement("li");
+              liNote.textContent = "eventOutcomeDetailNote: " + note;
+              ulOD.appendChild(liNote);
+            }
+            if (ulOD.hasChildNodes()) {
+              liOD.appendChild(ulOD);
+              ulOut.appendChild(liOD);
+            }
+          }
+          if (ulOut.hasChildNodes()) {
+            liOut.appendChild(ulOut);
+            list.appendChild(liOut);
+          }
+        }
+        const agentElems = evElem.getElementsByTagNameNS(
+          PREMIS_NS,
+          "linkingAgentIdentifier"
+        );
+        if (agentElems.length > 0) {
+          const liAgents = document.createElement("li");
+          liAgents.textContent = "linkingAgentIdentifier";
+          const ulAgents = document.createElement("ul");
+          for (let i = 0; i < agentElems.length; i++) {
+            const a = agentElems[i];
+            const liA = document.createElement("li");
+            liA.textContent = "linkingAgentIdentifier";
+            const ulA = document.createElement("ul");
+            const aType = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                a,
+                "linkingAgentIdentifierType",
+                PREMIS_NS
+              )
+            );
+            const aValue = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                a,
+                "linkingAgentIdentifierValue",
+                PREMIS_NS
+              )
+            );
+            const aRole = Utils.textOf(
+              Utils.firstChildByLocalNameNS(a, "linkingAgentRole", PREMIS_NS)
+            );
+            if (aType) {
+              const liT = document.createElement("li");
+              liT.textContent = "linkingAgentIdentifierType: " + aType;
+              ulA.appendChild(liT);
+            }
+            if (aValue) {
+              const liV = document.createElement("li");
+              liV.textContent = "linkingAgentIdentifierValue: " + aValue;
+              ulA.appendChild(liV);
+            }
+            if (aRole) {
+              const liR = document.createElement("li");
+              liR.textContent = "linkingAgentRole: " + aRole;
+              ulA.appendChild(liR);
+            }
+            if (ulA.hasChildNodes()) {
+              liA.appendChild(ulA);
+              ulAgents.appendChild(liA);
+            }
+          }
+          if (ulAgents.hasChildNodes()) {
+            liAgents.appendChild(ulAgents);
+            list.appendChild(liAgents);
+          }
+        }
+        const objElems = evElem.getElementsByTagNameNS(
+          PREMIS_NS,
+          "linkingObjectIdentifier"
+        );
+        if (objElems.length > 0) {
+          const liObjs = document.createElement("li");
+          liObjs.textContent = "linkingObjectIdentifier";
+          const ulObjs = document.createElement("ul");
+          for (let i = 0; i < objElems.length; i++) {
+            const o = objElems[i];
+            const liO = document.createElement("li");
+            liO.textContent = "linkingObjectIdentifier";
+            const ulO = document.createElement("ul");
+            const oType = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                o,
+                "linkingObjectIdentifierType",
+                PREMIS_NS
+              )
+            );
+            const oValue = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                o,
+                "linkingObjectIdentifierValue",
+                PREMIS_NS
+              )
+            );
+            if (oType) {
+              const liT = document.createElement("li");
+              liT.textContent = "linkingObjectIdentifierType: " + oType;
+              ulO.appendChild(liT);
+            }
+            if (oValue) {
+              const liV = document.createElement("li");
+              liV.textContent = "linkingObjectIdentifierValue: " + oValue;
+              ulO.appendChild(liV);
+            }
+            if (ulO.hasChildNodes()) {
+              liO.appendChild(ulO);
+              ulObjs.appendChild(liO);
+            }
+          }
+          if (ulObjs.hasChildNodes()) {
+            liObjs.appendChild(ulObjs);
+            list.appendChild(liObjs);
+          }
+        }
+        if (!list.hasChildNodes()) return null;
+        return list;
+      },
+
+      buildPremisAgentSummaryList(agentElem) {
+        const list = document.createElement("ul");
+        const identifiers = agentElem.getElementsByTagNameNS(
+          PREMIS_NS,
+          "agentIdentifier"
+        );
+        if (identifiers.length > 0) {
+          const liTop = document.createElement("li");
+          liTop.textContent = "agentIdentifier";
+          const ulTop = document.createElement("ul");
+          for (let i = 0; i < identifiers.length; i++) {
+            const ai = identifiers[i];
+            const liAi = document.createElement("li");
+            liAi.textContent = "agentIdentifier";
+            const ulAi = document.createElement("ul");
+            const type = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                ai,
+                "agentIdentifierType",
+                PREMIS_NS
+              )
+            );
+            const value = Utils.textOf(
+              Utils.firstChildByLocalNameNS(
+                ai,
+                "agentIdentifierValue",
+                PREMIS_NS
+              )
+            );
+            if (type) {
+              const liT = document.createElement("li");
+              liT.textContent = "agentIdentifierType: " + type;
+              ulAi.appendChild(liT);
+            }
+            if (value) {
+              const liV = document.createElement("li");
+              liV.textContent = "agentIdentifierValue: " + value;
+              ulAi.appendChild(liV);
+            }
+            if (ulAi.hasChildNodes()) {
+              liAi.appendChild(ulAi);
+              ulTop.appendChild(liAi);
+            }
+          }
+          if (ulTop.hasChildNodes()) {
+            liTop.appendChild(ulTop);
+            list.appendChild(liTop);
+          }
+        }
+        const names = agentElem.getElementsByTagNameNS(PREMIS_NS, "agentName");
+        if (names.length > 0) {
+          const liNames = document.createElement("li");
+          liNames.textContent = "agentName";
+          const ulNames = document.createElement("ul");
+          for (let i = 0; i < names.length; i++) {
+            const nameVal = Utils.textOf(names[i]);
+            if (!nameVal) continue;
+            const liN = document.createElement("li");
+            liN.textContent = "agentName: " + nameVal;
+            ulNames.appendChild(liN);
+          }
+          if (ulNames.hasChildNodes()) {
+            liNames.appendChild(ulNames);
+            list.appendChild(liNames);
+          }
+        }
+        const agentType = Utils.textOf(
+          Utils.firstChildByLocalNameNS(agentElem, "agentType", PREMIS_NS)
+        );
+        if (agentType) {
+          const liType = document.createElement("li");
+          liType.textContent = "agentType: " + agentType;
+          list.appendChild(liType);
+        }
+        const notes = agentElem.getElementsByTagNameNS(PREMIS_NS, "agentNote");
+        if (notes.length > 0) {
+          const liNotes = document.createElement("li");
+          liNotes.textContent = "agentNote";
+          const ulNotes = document.createElement("ul");
+          for (let i = 0; i < notes.length; i++) {
+            const noteVal = Utils.textOf(notes[i]);
+            if (!noteVal) continue;
+            const liN = document.createElement("li");
+            liN.textContent = "agentNote: " + noteVal;
+            ulNotes.appendChild(liN);
+          }
+          if (ulNotes.hasChildNodes()) {
+            liNotes.appendChild(ulNotes);
+            list.appendChild(liNotes);
+          }
+        }
+        if (!list.hasChildNodes()) return null;
+        return list;
+      },
+
+      renderObjectsSection(metsRoot, dmdIndex, amdIndex) {
+        const objSection = document.createElement("div");
+        objSection.className = "section-block";
+        const h2 = document.createElement("h2");
+        h2.textContent = "Objetos (por mets:file)";
+        objSection.appendChild(h2);
+        const fileSec = metsRoot.getElementsByTagNameNS(METS_NS, "fileSec")[0];
+        if (!fileSec) {
+          const p = document.createElement("p");
+          p.className = "small";
+          p.textContent = "Nenhuma seção fileSec encontrada.";
+          objSection.appendChild(p);
+          output.appendChild(objSection);
+          return;
+        }
+        const files = fileSec.getElementsByTagNameNS(METS_NS, "file");
+        if (files.length === 0) {
+          const p = document.createElement("p");
+          p.className = "small";
+          p.textContent = "Nenhum mets:file encontrado.";
+          objSection.appendChild(p);
+          output.appendChild(objSection);
+          return;
+        }
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const fileId = file.getAttribute("ID") || "file_" + (i + 1);
+          const mimetype = file.getAttribute("MIMETYPE") || "";
+          const size = file.getAttribute("SIZE") || "";
+          const use = file.parentElement
+            ? file.parentElement.getAttribute("USE") || ""
+            : "";
+          const flocat = Utils.firstChildByLocalNameNS(file, "FLocat", METS_NS);
+          let href = "";
+          if (flocat) {
+            href =
+              flocat.getAttributeNS(XLINK_NS, "href") ||
+              flocat.getAttribute("xlink:href") ||
+              flocat.getAttribute("href") ||
+              "";
+          }
+          let displayName = fileId;
+          if (href) {
+            const parts = href.split(/[\/\\]/);
+            const last = parts[parts.length - 1];
+            if (last) displayName = last;
+          }
+          const block = document.createElement("div");
+          block.className = "obj-block";
+          const h3 = document.createElement("h3");
+          h3.textContent = "Objeto " + (i + 1) + " (" + displayName + ")";
+          block.appendChild(h3);
+          const metaUl = document.createElement("ul");
+          const liFileId = document.createElement("li");
+          liFileId.innerHTML =
+            'FILEID: <span class="highlight-id">' + fileId + "</span>";
+          metaUl.appendChild(liFileId);
+          if (use) {
+            const liUse = document.createElement("li");
+            liUse.textContent = "Grupo de uso (fileGrp/@USE): " + use;
+            metaUl.appendChild(liUse);
+          }
+          if (mimetype) {
+            const liMime = document.createElement("li");
+            liMime.textContent = "MIME type: " + mimetype;
+            metaUl.appendChild(liMime);
+          }
+          if (size) {
+            const liSize = document.createElement("li");
+            liSize.textContent = "Tamanho (SIZE): " + size;
+            metaUl.appendChild(liSize);
+          }
+          if (href) {
+            const liHref = document.createElement("li");
+            liHref.textContent =
+              "Caminho no pacote (FLocat/@xlink:href): " + href;
+            metaUl.appendChild(liHref);
+          }
+          if (metaUl.hasChildNodes()) block.appendChild(metaUl);
+
+          const dmdIdAttr = file.getAttribute("DMDID") || "";
+          if (dmdIdAttr) {
+            const dmdIds = dmdIdAttr.trim().split(/\s+/);
+            const dDetails = document.createElement("details");
+            const dSummary = document.createElement("summary");
+            dSummary.innerHTML =
+              '<span class="summary-pill">Descrição</span> Metadados descritivos (dmdSec)';
+            dDetails.appendChild(dSummary);
+            const dmdUl = document.createElement("ul");
+            dmdIds.forEach((did) => {
+              const entry = dmdIndex[did];
+              const li = document.createElement("li");
+              if (!entry) {
+                li.textContent = did + " (não encontrado no índice de dmdSec)";
+              } else {
+                const strongId = document.createElement("span");
+                strongId.className = "highlight-id";
+                strongId.textContent = entry.id;
+                li.appendChild(strongId);
+                if (entry.mdtypeRaw) {
+                  li.appendChild(
+                    document.createTextNode(" (MDTYPE: " + entry.mdtypeRaw + ")")
+                  );
+                }
+                if (entry.dcList) {
+                  li.appendChild(entry.dcList.cloneNode(true));
+                  const badge = document.createElement("span");
+                  badge.className = "badge badge-dc";
+                  badge.textContent = "DC";
+                  li.appendChild(badge);
+                }
+                if (entry.premisObjectElem) {
+                  const premisList = Renderer.buildPremisObjectSummaryList(
+                    entry.premisObjectElem
+                  );
+                  if (premisList) {
+                    li.appendChild(premisList);
+                    const badge = document.createElement("span");
+                    badge.className = "badge badge-premis";
+                    badge.textContent = "PREMIS:OBJECT";
+                    li.appendChild(badge);
+                  }
+                }
+              }
+              dmdUl.appendChild(li);
+            });
+            dDetails.appendChild(dmdUl);
+            block.appendChild(dDetails);
+          }
+
+          const amdIdAttr = file.getAttribute("ADMID") || "";
+          if (amdIdAttr) {
+            const amdIds = amdIdAttr.trim().split(/\s+/);
+            const aDetails = document.createElement("details");
+            const aSummary = document.createElement("summary");
+            aSummary.innerHTML =
+              '<span class="summary-pill">Preservação</span> Metadados administrativos (amdSec, PREMIS)';
+            aDetails.appendChild(aSummary);
+            const amdUl = document.createElement("ul");
+            amdIds.forEach((aid) => {
+              const entry = amdIndex[aid];
+              const li = document.createElement("li");
+              if (!entry) {
+                li.textContent = aid + " (não encontrado no índice de amdSec)";
+              } else {
+                const spanId = document.createElement("span");
+                spanId.className = "highlight-id";
+                spanId.textContent = entry.id;
+                li.appendChild(spanId);
+                if (entry.mdBlocks.length > 0) {
+                  const inner = document.createElement("ul");
+                  entry.mdBlocks.forEach((md) => {
+                    const mdLi = document.createElement("li");
+                    const mdSpan = document.createElement("span");
+                    mdSpan.className = "highlight-id";
+                    mdSpan.textContent =
+                      md.type + "_" + md.id.replace(/^.*_/, "");
+                    mdLi.appendChild(mdSpan);
+                    if (md.mdtypeRaw) {
+                      mdLi.appendChild(
+                        document.createTextNode(" (" + md.mdtypeRaw + ")")
+                      );
+                    }
+                    if (md.premisObjectElem) {
+                      const premisList = Renderer.buildPremisObjectSummaryList(
+                        md.premisObjectElem
+                      );
+                      if (premisList) {
+                        mdLi.appendChild(premisList);
+                        const badge = document.createElement("span");
+                        badge.className = "badge badge-premis";
+                        badge.textContent = "PREMIS:OBJECT";
+                        mdLi.appendChild(badge);
+                      }
+                    }
+                    if (md.premisEventElems && md.premisEventElems.length > 0) {
+                      md.premisEventElems.forEach((evElem) => {
+                        const evList = Renderer.buildPremisEventSummaryList(evElem);
+                        if (evList) {
+                          mdLi.appendChild(evList);
+                          const badgeEv = document.createElement("span");
+                          badgeEv.className = "badge badge-premis";
+                          badgeEv.textContent = "PREMIS:EVENT";
+                          mdLi.appendChild(badgeEv);
+                        }
+                      });
+                    }
+                    if (md.premisAgentElems && md.premisAgentElems.length > 0) {
+                      md.premisAgentElems.forEach((agElem) => {
+                        const agList = Renderer.buildPremisAgentSummaryList(agElem);
+                        if (agList) {
+                          mdLi.appendChild(agList);
+                          const badgeAg = document.createElement("span");
+                          badgeAg.className = "badge badge-premis";
+                          badgeAg.textContent = "PREMIS:AGENT";
+                          mdLi.appendChild(badgeAg);
+                        }
+                      });
+                    }
+                    inner.appendChild(mdLi);
+                  });
+                  li.appendChild(inner);
+                }
+              }
+              amdUl.appendChild(li);
+            });
+            aDetails.appendChild(amdUl);
+            block.appendChild(aDetails);
+          }
+
+          objSection.appendChild(block);
+        }
+        output.appendChild(objSection);
+      }
+    };
+
+    function buildOverview(metsRoot) {
+      const container = document.createElement("div");
+      container.className = "overview";
+      const files = metsRoot.getElementsByTagNameNS(METS_NS, "file");
+      const premisObjects = metsRoot.getElementsByTagNameNS(PREMIS_NS, "object");
+      const premisEvents = metsRoot.getElementsByTagNameNS(PREMIS_NS, "event");
+      const premisAgents = metsRoot.getElementsByTagNameNS(PREMIS_NS, "agent");
+      const metrics = [
+        { label: "Objetos (mets:file)", value: files.length },
+        { label: "PREMIS objects", value: premisObjects.length },
+        { label: "PREMIS events", value: premisEvents.length },
+        { label: "PREMIS agents", value: premisAgents.length }
+      ];
+      metrics.forEach((m) => {
+        const card = document.createElement("div");
+        card.className = "metric-card";
+        const lab = document.createElement("div");
+        lab.className = "metric-label";
+        lab.textContent = m.label;
+        const val = document.createElement("div");
+        val.className = "metric-value";
+        val.textContent = m.value;
+        card.appendChild(lab);
+        card.appendChild(val);
+        container.appendChild(card);
+      });
+      return container;
+    }
+
+    function buildLegend() {
+      const div = document.createElement("div");
+      div.className = "legend";
+      const label = document.createElement("span");
+      label.className = "legend-label";
+      label.textContent = "Legenda:";
+      const dc = document.createElement("span");
+      dc.className = "badge badge-dc";
+      dc.textContent = "DC (Dublin Core)";
+      const pobj = document.createElement("span");
+      pobj.className = "badge badge-premis";
+      pobj.textContent = "PREMIS:OBJECT";
+      const pevent = document.createElement("span");
+      pevent.className = "badge badge-premis";
+      pevent.textContent = "PREMIS:EVENT";
+      const pagent = document.createElement("span");
+      pagent.className = "badge badge-premis";
+      pagent.textContent = "PREMIS:AGENT";
+      div.appendChild(label);
+      div.appendChild(dc);
+      div.appendChild(pobj);
+      div.appendChild(pevent);
+      div.appendChild(pagent);
+      return div;
+    }
+
+    function renderSummary(metsRoot) {
+      output.innerHTML = "";
+      const overview = buildOverview(metsRoot);
+      output.appendChild(overview);
+      const legend = buildLegend();
+      output.appendChild(legend);
+      const dmdIndex = IndexBuilder.buildDmdIndex(metsRoot);
+      const amdIndex = IndexBuilder.buildAmdIndex(metsRoot);
+      Renderer.renderObjectsSection(metsRoot, dmdIndex, amdIndex);
+      Highlighter.styleNameValuePairs(output);
+    }
+
+    function handleFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      Utils.clearError();
+      output.textContent = 'Lendo arquivo "' + file.name + '"...';
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const xmlText = ev.target.result;
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(xmlText, "application/xml");
+          const parseError = doc.getElementsByTagName("parsererror")[0];
+          if (parseError) {
+            Utils.showError(
+              "Erro ao analisar XML: " + parseError.textContent.trim()
+            );
+            return;
+          }
+          const metsRoot = doc.documentElement;
+          if (metsRoot.namespaceURI !== METS_NS) {
+            Utils.showError(
+              "O documento raiz não parece ser um METS (namespace diferente de METS)."
+            );
+            return;
+          }
+          renderSummary(metsRoot);
+        } catch (err) {
+          Utils.showError("Falha ao processar o XML: " + err.message);
+          console.error(err);
+        }
+      };
+      reader.onerror = () => {
+        Utils.showError("Erro ao ler o arquivo.");
+      };
+      reader.readAsText(file);
+    }
+
+    fileInput.addEventListener("change", handleFile);
+  })();
+  </script>
+</body>
+</html>
