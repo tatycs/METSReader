@@ -1,48 +1,77 @@
 # METSReader — leitor de `METS.xml`
 
-Ferramenta para ler o **METS de um AIP do Archivematica** e conferir, sem abrir o XML
-cru, o que o pacote realmente declara. Roda inteiramente no navegador: o arquivo é lido
-pelo `FileReader` da própria página — **nada é enviado para lugar nenhum**.
+Ferramenta para ler o **METS de um AIP do Archivematica** e conferir, sem abrir o XML cru,
+o que o pacote realmente declara: quais arquivos existem, o que foi feito com cada um,
+quem fez, sob que direitos e como o pacote está organizado por dentro.
 
-Em uso: <https://mr.metadoc.com.br/>
+Roda inteiramente no navegador — o arquivo é lido pelo `FileReader` da própria página e
+**nada é enviado para lugar nenhum**.
 
-## O que ele mostra
+- Em uso: <https://mr.metadoc.com.br/>
+- **[Guia de leitura](guia.html)** — o que aparece em cada aba e como interpretar
+  ([versão publicada](https://mr.metadoc.com.br/guia.html))
 
-Seis abas, todas construídas a partir do mesmo METS:
+## Para que serve
 
-- **Visão geral** — contadores de `mets:file`, de objetos, eventos, agentes e direitos
-  PREMIS, e de divisões do `structMap`.
-- **Objetos** — um bloco por `mets:file`, com `FILEID`, grupo de uso (`fileGrp/@USE`),
-  MIME, tamanho e caminho no pacote; abaixo, os metadados descritivos (`dmdSec`, Dublin
-  Core) e os administrativos (`amdSec`) referenciados por `DMDID` e `ADMID`.
-- **Eventos** e **Agentes** — visão global de `premis:event` e `premis:agent`.
-- **Direitos** — cada `premis:rightsStatement` por inteiro: identificador, `rightsBasis`,
-  o bloco da base declarada (copyright, license, statute ou otherRights), cada
-  `rightsGranted` com `act`, `restriction`, `termOfGrant`/`termOfRestriction` e notas, e
-  os vínculos `linkingObject`/`linkingAgent`. Os direitos também aparecem por arquivo, na
-  aba Objetos.
-- **Estrutura** — a árvore de `mets:div` do `structMap`, com `LABEL`, `TYPE`, `ORDER`,
-  `DMDID` e `ADMID`; cada `fptr` é resolvido do `FILEID` para o caminho do arquivo e o
-  grupo de uso, e `mptr` é exibido como ponteiro externo.
+O METS de um AIP tem, com facilidade, milhares de linhas: um pacote pequeno, de cinco
+documentos, passa de sete mil. Abrir isso num editor de texto para responder a perguntas
+simples — *este PDF foi normalizado?*, *qual o hash registrado?*, *que direito está preso a
+esta peça?* — é trabalhoso e propenso a erro.
 
-O `objectCharacteristicsExtension` (MIX, JHOVE e o que mais o Archivematica embutir) é
-exibido em blocos recolhíveis, preservando os nomes qualificados dos elementos.
+O METSReader resolve as referências que o METS deixa em aberto: liga cada `mets:file` aos
+seus `dmdSec` e `amdSec` pelos atributos `DMDID` e `ADMID`, e resolve cada `fptr` do
+`structMap` do `FILEID` para o caminho real do arquivo. O que era um emaranhado de
+identificadores vira uma leitura por objeto.
 
-## Rodar localmente
+## Como usar
 
-Não precisa de servidor nem de dependência: é um arquivo só.
+**No navegador**, em <https://mr.metadoc.com.br/>: clique em *Selecionar METS.xml* e
+escolha o arquivo. Ele fica na sua máquina.
+
+**Localmente**, sem servidor nem dependência — é um arquivo só:
 
 ```
 abrir index.html no navegador
 ```
 
-O `<input type="file">` aceita `.xml` e `.mets`.
+O seletor aceita `.xml` e `.mets`. O arquivo esperado é o `METS.<uuid>.xml` da raiz do AIP
+(o mesmo que o Archivematica grava dentro do pacote e no `submissionDocumentation`).
 
-## Publicar no GitHub Pages
+## O que ele mostra
 
-Os arquivos ficam na raiz. Settings → Pages → Source: branch `main`, pasta `/`.
-O `CNAME` aponta para o subdomínio e o `.nojekyll` evita que o Jekyll processe o
-diretório.
+Seis abas, todas construídas a partir do mesmo METS. O
+**[guia de leitura](guia.html)** explica cada campo; em resumo:
+
+| Aba | O que traz |
+|---|---|
+| **Visão geral** | contadores de `mets:file`, objetos, eventos, agentes e direitos PREMIS, e de divisões do `structMap` |
+| **Objetos** | um bloco por `mets:file`, com os metadados descritivos (`dmdSec`) e de preservação (`amdSec`) que o arquivo referencia |
+| **Eventos** | todos os `premis:event` do pacote |
+| **Agentes** | todos os `premis:agent` |
+| **Direitos** | cada `premis:rightsStatement` por inteiro |
+| **Estrutura** | a árvore de `mets:div` do `structMap`, com os `fptr` resolvidos |
+
+O `objectCharacteristicsExtension` (MIX, JHOVE e o que mais o Archivematica embutir) é
+exibido em blocos recolhíveis, preservando os nomes qualificados dos elementos.
+
+## O que ele não faz
+
+- **Não valida** o METS contra o XSD, nem o PREMIS contra o Data Dictionary. Ele mostra o
+  que está declarado; não diz se está correto.
+- **Não recalcula fixidez.** O `messageDigest` exibido é o que o pacote afirma, não uma
+  verificação dos arquivos.
+- **Não abre os objetos do pacote** — lê só o METS, que é texto. Os PDFs, TIFFs e demais
+  arquivos não são tocados.
+- **Não altera nada.** É só leitura.
+
+## Estrutura do repositório
+
+```
+index.html   a aplicação inteira: HTML, CSS e JavaScript num arquivo só
+guia.html    o guia de leitura, publicado junto
+CNAME        subdomínio do GitHub Pages
+.nojekyll    impede o Jekyll de processar o diretório
+```
 
 ## Sobre os METS de exemplo
 

@@ -49,6 +49,19 @@
       background: #1f2937;
     }
 
+    .guide-link {
+      padding: 0.4rem 0.7rem;
+      border-radius: 0.5rem;
+      border: 1px solid #374151;
+      font-size: 0.85rem;
+      text-decoration: none;
+      color: #a7f3d0;
+    }
+
+    .guide-link:hover {
+      background: #1f2937;
+    }
+
     #xmlFile {
       display: none;
     }
@@ -343,6 +356,7 @@
   <div class="controls">
     <label for="xmlFile" class="file-label">Selecionar METS.xml</label>
     <input type="file" id="xmlFile" accept=".xml,.mets">
+    <a class="guide-link" href="guia.html">Guia de leitura</a>
     <span class="info">
       O arquivo é processado localmente no navegador (nenhum dado é enviado).
     </span>

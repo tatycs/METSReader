@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>METSReader — guia de leitura</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 1rem 1.5rem 4rem;
+      background: #111827;
+      color: #e5e7eb;
+      line-height: 1.55;
+    }
+
+    .wrap {
+      max-width: 52rem;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      margin-bottom: 0.25rem;
+    }
+
+    h2 {
+      margin-top: 2rem;
+      font-size: 1.05rem;
+      border-bottom: 1px solid #374151;
+      padding-bottom: 0.25rem;
+    }
+
+    h3 {
+      margin-top: 1.4rem;
+      margin-bottom: 0.3rem;
+      font-size: 0.95rem;
+      color: #e5e7eb;
+    }
+
+    p, li {
+      font-size: 0.88rem;
+    }
+
+    .lead {
+      color: #9ca3af;
+      font-size: 0.88rem;
+      margin-top: 0.25rem;
+    }
+
+    a {
+      color: #a7f3d0;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin: 0.9rem 0 1.2rem;
+    }
+
+    .btn {
+      padding: 0.4rem 0.7rem;
+      border-radius: 0.5rem;
+      border: 1px solid #4b5563;
+      font-size: 0.85rem;
+      text-decoration: none;
+      color: #e5e7eb;
+    }
+
+    .btn:hover {
+      background: #1f2937;
+    }
+
+    .panel {
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      background: #020617;
+      border: 1px solid #1f2937;
+      margin: 0.75rem 0;
+    }
+
+    .toc ul {
+      columns: 2;
+      column-gap: 2rem;
+      margin: 0.25rem 0 0 1.1rem;
+    }
+
+    .toc li {
+      break-inside: avoid;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82em;
+      background: #1f2937;
+      padding: 0.05rem 0.3rem;
+      border-radius: 0.25rem;
+      color: #e5e7eb;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 0.6rem 0;
+      font-size: 0.83rem;
+      display: block;
+      overflow-x: auto;
+    }
+
+    th, td {
+      border: 1px solid #374151;
+      padding: 0.35rem 0.5rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #1f2937;
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.05rem 0.35rem;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      border: 1px solid #4b5563;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #9ca3af;
+      white-space: nowrap;
+    }
+
+    .badge-premis { border-color: #a5b4fc; color: #c4b5fd; }
+    .badge-dc     { border-color: #6ee7b7; color: #a7f3d0; }
+    .badge-rights { border-color: #fcd34d; color: #fde68a; }
+
+    .nota {
+      border-left: 3px solid #4b5563;
+      padding: 0.4rem 0 0.4rem 0.75rem;
+      margin: 0.8rem 0;
+      color: #9ca3af;
+      font-size: 0.85rem;
+    }
+
+    .muted { color: #9ca3af; }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #374151;
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>METSReader — guia de leitura</h1>
+  <p class="lead">O que aparece na tela, campo por campo, e como interpretar.</p>
+
+  <div class="topbar">
+    <a class="btn" href="index.html">← Voltar ao programa</a>
+    <span class="muted">O METS que você abre não sai da sua máquina.</span>
+  </div>
+
+  <div class="panel toc">
+    <strong>Neste guia</strong>
+    <ul>
+      <li><a href="#o-que-e">O que é o arquivo que você abre</a></li>
+      <li><a href="#visao-geral">Aba Visão geral</a></li>
+      <li><a href="#objetos">Aba Objetos</a></li>
+      <li><a href="#eventos">Aba Eventos</a></li>
+      <li><a href="#agentes">Aba Agentes</a></li>
+      <li><a href="#direitos">Aba Direitos</a></li>
+      <li><a href="#estrutura">Aba Estrutura</a></li>
+      <li><a href="#etiquetas">Etiquetas e cores</a></li>
+      <li><a href="#limites">O que o programa não faz</a></li>
+      <li><a href="#diagnostico">Quando algo parece errado</a></li>
+    </ul>
+  </div>
+
+  <h2 id="o-que-e">O que é o arquivo que você abre</h2>
+
+  <p>Um AIP do Archivematica é uma pasta compactada. Dentro dela, na raiz, há um arquivo
+  chamado <code>METS.&lt;uuid&gt;.xml</code>: é o <strong>mapa do pacote</strong>. Ele não
+  guarda os documentos — guarda a descrição de tudo o que está lá e de tudo o que foi feito
+  durante a ingestão.</p>
+
+  <p>Esse mapa é dividido em seções, e é por elas que o programa se orienta:</p>
+
+  <table>
+    <tr><th>Seção do METS</th><th>O que guarda</th></tr>
+    <tr><td><code>dmdSec</code></td><td>metadados <strong>descritivos</strong> — em geral Dublin Core: título, data, descrição, proveniência</td></tr>
+    <tr><td><code>amdSec</code></td><td>metadados <strong>administrativos</strong>, subdivididos em <code>techMD</code> (técnico), <code>digiprovMD</code> (procedência digital: eventos e agentes), <code>rightsMD</code> (direitos)</td></tr>
+    <tr><td><code>fileSec</code></td><td>a lista dos arquivos, agrupados por uso (<code>fileGrp</code>)</td></tr>
+    <tr><td><code>structMap</code></td><td>como esses arquivos se organizam em pastas e itens</td></tr>
+  </table>
+
+  <p>O METS liga essas seções por identificadores: cada <code>mets:file</code> carrega
+  atributos <code>DMDID</code> e <code>ADMID</code> apontando para os blocos que descrevem
+  aquele arquivo. Ler isso à mão significa saltar de um identificador a outro num arquivo de
+  milhares de linhas. <strong>É exatamente esse trabalho que o programa faz por você</strong>:
+  segue as referências e mostra o resultado reunido, por objeto.</p>
+
+  <div class="nota">Dentro do AIP, o conteúdo dos metadados PREMIS é dividido entre esses
+  blocos. O programa não inventa nada nem completa lacunas: se um campo não aparece na tela,
+  é porque não está declarado no METS.</div>
+
+  <h2 id="visao-geral">Aba Visão geral</h2>
+
+  <p>Seis contadores, para você ter a dimensão do pacote antes de entrar nos detalhes.</p>
+
+  <table>
+    <tr><th>Contador</th><th>Significa</th></tr>
+    <tr><td>Objetos (<code>mets:file</code>)</td><td>quantos arquivos o pacote declara — originais, cópias de preservação, documentação de submissão e metadados, tudo somado</td></tr>
+    <tr><td>PREMIS objects</td><td>quantas entidades-objeto PREMIS existem</td></tr>
+    <tr><td>PREMIS events</td><td>quantos eventos de preservação foram registrados</td></tr>
+    <tr><td>PREMIS agents</td><td>quantos agentes (software, organização, pessoa) aparecem</td></tr>
+    <tr><td>PREMIS rights</td><td>quantas declarações de direitos existem</td></tr>
+    <tr><td>Divisões (<code>mets:div</code>)</td><td>quantos nós a árvore de estrutura tem, contando pastas e itens</td></tr>
+  </table>
+
+  <p><strong>O que esses números dizem.</strong> Os eventos costumam ser muitos: o
+  Archivematica registra cada verificação de vírus, cada identificação de formato, cada
+  normalização, para cada arquivo. Dezenas de eventos para um punhado de documentos é o
+  esperado, não um sinal de problema. Já os direitos costumam ser poucos, ou nenhum — só
+  existem se alguém os declarou, seja por um <code>rights.csv</code> na transferência, seja
+  à mão.</p>
+
+  <p>Uma diferença entre <em>Objetos</em> e <em>PREMIS objects</em> também é normal: o AIP
+  em si costuma ter uma entidade PREMIS própria, além da de cada arquivo.</p>
+
+  <h2 id="objetos">Aba Objetos</h2>
+
+  <p>É a aba central. Um bloco por <code>mets:file</code>, com o nome do arquivo no título.
+  Primeiro vêm os dados do próprio elemento:</p>
+
+  <ul>
+    <li><strong>FILEID</strong> — o identificador interno do arquivo dentro do METS. É por ele que o <code>structMap</code> aponta para cá.</li>
+    <li><strong>Grupo de uso (<code>fileGrp/@USE</code>)</strong> — o papel do arquivo no pacote. Os valores usuais do Archivematica são <code>original</code> (o que veio na transferência), <code>preservation</code> (a cópia normalizada para preservação), <code>submissionDocumentation</code> (a documentação da submissão, inclusive o METS da transferência) e <code>metadata</code> (arquivos de metadados que vieram junto, como <code>rights.csv</code> ou <code>premis.xml</code>).</li>
+    <li><strong>MIME type</strong> e <strong>Tamanho (SIZE)</strong> — como declarados no METS.</li>
+    <li><strong>Caminho no pacote</strong> — o <code>FLocat/@xlink:href</code>, ou seja, onde o arquivo está dentro do AIP.</li>
+  </ul>
+
+  <p>Abaixo, duas gavetas que se abrem:</p>
+
+  <h3><span class="badge">Descrição</span> Metadados descritivos (dmdSec)</h3>
+
+  <p>O que os atributos <code>DMDID</code> do arquivo apontam. Em geral um bloco Dublin
+  Core, marcado com a etiqueta <span class="badge badge-dc">DC</span>: título, data,
+  descrição, proveniência — o que descreve o documento como conteúdo, não como arquivo
+  digital.</p>
+
+  <h3><span class="badge">Preservação</span> Metadados administrativos (amdSec, PREMIS)</h3>
+
+  <p>O que os atributos <code>ADMID</code> apontam, bloco a bloco, cada um identificado pelo
+  tipo (<code>techMD</code>, <code>digiprovMD</code>, <code>rightsMD</code>) e pelo
+  <code>MDTYPE</code>. Aqui aparecem, conforme o caso:</p>
+
+  <ul>
+    <li><strong><code>objectIdentifier</code></strong> — o identificador PREMIS do objeto, quase sempre um UUID. É a chave que os eventos e os direitos usam para se referir a este arquivo.</li>
+    <li><strong><code>objectCharacteristics</code></strong> — a descrição técnica:
+      <ul>
+        <li><code>compositionLevel</code>: quantas camadas de codificação estão sobrepostas (0 = nenhuma);</li>
+        <li><code>fixity</code>: <code>messageDigestAlgorithm</code> e <code>messageDigest</code> — o algoritmo e o hash registrados no momento da ingestão;</li>
+        <li><code>size</code>: o tamanho em bytes;</li>
+        <li><code>format</code>: <code>formatDesignation</code> (nome e versão do formato) e <code>formatRegistry</code> (o registro consultado e a chave — normalmente o PRONOM, e a chave vira link para a ficha do formato).</li>
+      </ul>
+    </li>
+    <li><strong><code>creatingApplication</code></strong> — o programa que criou o arquivo, com versão e data, quando essa informação foi extraída.</li>
+    <li><strong><code>objectCharacteristicsExtension</code></strong> — os relatórios das ferramentas de caracterização embutidos pelo Archivematica: MIX para imagens, JHOVE, e o que mais estiver configurado. Vêm em blocos recolhíveis, com os nomes qualificados dos elementos preservados, para você conferir o que a ferramenta realmente devolveu.</li>
+    <li><strong><code>originalName</code></strong> — o nome do arquivo como estava na transferência, antes de qualquer renomeação.</li>
+    <li><strong><code>relationship</code></strong> — o vínculo com outro objeto. É aqui que se lê a normalização: a cópia de preservação declara um relacionamento <code>derivation / has source</code> apontando para o original, e cita o evento que produziu a derivação (<code>relatedEventIdentifier</code>).</li>
+  </ul>
+
+  <p>No mesmo lugar aparecem, quando o arquivo os referencia, os eventos
+  <span class="badge badge-premis">PREMIS:EVENT</span>, os agentes
+  <span class="badge badge-premis">PREMIS:AGENT</span> e os direitos
+  <span class="badge badge-rights">PREMIS:RIGHTS</span> ligados àquele arquivo — os mesmos
+  que as abas seguintes mostram em conjunto.</p>
+
+  <h2 id="eventos">Aba Eventos</h2>
+
+  <p>Todos os <code>premis:event</code> do pacote, em sequência. Cada evento traz:</p>
+
+  <ul>
+    <li><strong><code>eventIdentifier</code></strong> — tipo e valor, em geral um UUID;</li>
+    <li><strong><code>eventType</code></strong> — o que aconteceu. No Archivematica os tipos recorrentes são <code>virus check</code>, <code>format identification</code>, <code>message digest calculation</code>, <code>fixity check</code>, <code>normalization</code>, <code>ingestion</code>, <code>validation</code>;</li>
+    <li><strong><code>eventDateTime</code></strong> — quando;</li>
+    <li><strong><code>eventDetail</code></strong> — o detalhe técnico, muitas vezes o comando e a versão da ferramenta usada;</li>
+    <li><strong><code>eventOutcomeInformation</code></strong> — o resultado: <code>eventOutcome</code> (por exemplo <code>pass</code>, <code>fail</code>, ou vazio) e <code>eventOutcomeDetailNote</code>, que costuma trazer a saída da ferramenta;</li>
+    <li><strong><code>linkingAgentIdentifier</code></strong> — quem executou, com o papel (<code>linkingAgentRole</code>) quando declarado.</li>
+  </ul>
+
+  <p>Um evento que interessa quase sempre é o de <em>normalização</em>: é ele que explica por
+  que existem dois arquivos aparentemente iguais no pacote, um em <code>original</code> e
+  outro em <code>preservation</code>.</p>
+
+  <h2 id="agentes">Aba Agentes</h2>
+
+  <p>Todos os <code>premis:agent</code>. Cada um com <code>agentIdentifier</code> (tipo e
+  valor), <code>agentName</code>, <code>agentType</code> e, quando houver,
+  <code>agentNote</code>.</p>
+
+  <p>O <code>agentType</code> distingue três naturezas: <code>software</code> (as
+  ferramentas — ClamAV, Siegfried, Ghostscript, o próprio Archivematica),
+  <code>organization</code> (a instituição responsável pelo repositório) e
+  <code>person</code> (a conta de usuário que operou a ingestão).</p>
+
+  <div class="nota">Repare que agentes do tipo <code>person</code> carregam nome e usuário de
+  gente real. É por isso que compartilhar um METS de AIP — em aula, num relatório, num
+  repositório público — merece uma conferida antes.</div>
+
+  <h2 id="direitos">Aba Direitos</h2>
+
+  <p>Cada <code>premis:rightsStatement</code> do pacote, identificado pelo
+  <code>rightsMD</code> que o embrulha, para você conseguir localizá-lo no XML. A leitura
+  segue a estrutura do PREMIS:</p>
+
+  <ul>
+    <li><strong><code>rightsStatementIdentifier</code></strong> — tipo e valor.</li>
+    <li><strong><code>rightsBasis</code></strong> — o <em>fundamento</em> do direito, e é o campo que orienta todo o resto. Os valores previstos são <code>Copyright</code>, <code>License</code>, <code>Statute</code>, <code>Donor</code>, <code>Policy</code> e <code>Other</code>.</li>
+    <li><strong>O bloco correspondente ao fundamento</strong> — conforme o caso, <code>copyrightInformation</code>, <code>licenseInformation</code>, <code>statuteInformation</code> ou <code>otherRightsInformation</code>. É onde ficam as datas de vigência e as notas que explicam o direito em palavras.</li>
+    <li><strong><code>rightsGranted</code></strong> — o que se pode fazer na prática, e é a parte operacional da declaração:
+      <ul>
+        <li><code>act</code>: o ato permitido ou vedado — <code>disseminate</code>, <code>replicate</code>, <code>migrate</code>, <code>modify</code>, <code>delete</code>;</li>
+        <li><code>restriction</code>: se o ato é permitido (<code>Allow</code>) ou restringido (<code>Disallow</code>, <code>Conditional</code>);</li>
+        <li><code>termOfGrant</code> / <code>termOfRestriction</code>: o período, com <code>startDate</code> e <code>endDate</code> — <code>OPEN</code> significa sem termo final;</li>
+        <li><code>rightsGrantedNote</code>: a justificativa em texto livre.</li>
+      </ul>
+    </li>
+    <li><strong><code>linkingObjectIdentifier</code></strong> e <strong><code>linkingAgentIdentifier</code></strong> — a que objeto o direito se prende e, quando declarado, a que agente.</li>
+  </ul>
+
+  <p>Vale saber de onde esses blocos costumam vir. No fluxo normal do Archivematica, eles
+  são gerados a partir de um <code>rights.csv</code> incluído na transferência — e esse
+  formato prende cada direito a <em>arquivos</em>. Quando o direito é, na verdade, de nível
+  do documento ou do processo, ele acaba replicado em cada peça. Se você encontrar a mesma
+  declaração repetida em vários arquivos, provavelmente é isso, e não duplicação por
+  engano.</p>
+
+  <h2 id="estrutura">Aba Estrutura</h2>
+
+  <p>A árvore do <code>structMap</code>: como o pacote se organiza por dentro. Cada nó é um
+  <code>mets:div</code>, mostrado com o <code>LABEL</code> em destaque e o <code>TYPE</code>
+  ao lado — tipicamente <code>Directory</code> para pastas e <code>Item</code> para
+  arquivos.</p>
+
+  <p>Dentro de cada nó aparecem, quando existirem:</p>
+
+  <ul>
+    <li><strong><code>DMDID</code></strong> e <strong><code>ADMID</code></strong> — metadados presos àquela divisão e não a um arquivo isolado. O <code>DMDID</code> no nó raiz é o lugar onde costuma ficar a descrição do conjunto.</li>
+    <li><strong><code>fptr →</code></strong> — o ponteiro para um arquivo. O programa <strong>resolve o <code>FILEID</code></strong> e mostra o caminho real e o grupo de uso entre parênteses, em vez do identificador cru. Se um <code>fptr</code> apontar para um <code>FILEID</code> que não existe no <code>fileSec</code>, isso é dito explicitamente — é um defeito do pacote.</li>
+    <li><strong><code>mptr →</code></strong> — ponteiro para um METS externo, usado quando o pacote referencia outro pacote.</li>
+  </ul>
+
+  <p>É a aba que responde mais rápido a “o que exatamente tem dentro deste AIP e onde”.</p>
+
+  <h2 id="etiquetas">Etiquetas e cores</h2>
+
+  <p>As etiquetas marcam a natureza do bloco que acabou de ser exibido:</p>
+
+  <table>
+    <tr><th>Etiqueta</th><th>Significa</th></tr>
+    <tr><td><span class="badge badge-dc">DC</span></td><td>Dublin Core — metadado descritivo</td></tr>
+    <tr><td><span class="badge badge-premis">PREMIS:OBJECT</span></td><td>a entidade-objeto: o arquivo como coisa digital</td></tr>
+    <tr><td><span class="badge badge-premis">PREMIS:EVENT</span></td><td>um evento de preservação</td></tr>
+    <tr><td><span class="badge badge-premis">PREMIS:AGENT</span></td><td>quem agiu: software, organização ou pessoa</td></tr>
+    <tr><td><span class="badge badge-rights">PREMIS:RIGHTS</span></td><td>uma declaração de direitos</td></tr>
+  </table>
+
+  <p>Nas listas, o rótulo do campo aparece em destaque e o valor ao lado, para que a leitura
+  acompanhe a mesma nomenclatura do PREMIS — assim o que você lê na tela pode ser procurado
+  no XML tal como está escrito.</p>
+
+  <h2 id="limites">O que o programa não faz</h2>
+
+  <ul>
+    <li><strong>Não valida.</strong> Não confere o METS contra o XSD nem o PREMIS contra o Data Dictionary. Mostra o que está declarado; não afirma que está correto.</li>
+    <li><strong>Não recalcula fixidez.</strong> O <code>messageDigest</code> exibido é o que o pacote afirma. Conferir se o arquivo continua íntegro é outra tarefa, feita sobre os arquivos.</li>
+    <li><strong>Não abre os objetos do pacote.</strong> Lê apenas o METS. Os PDFs, TIFFs e demais arquivos não são tocados.</li>
+    <li><strong>Não altera nada.</strong> É leitura, e só.</li>
+  </ul>
+
+  <h2 id="diagnostico">Quando algo parece errado</h2>
+
+  <table>
+    <tr><th>O que você vê</th><th>O que provavelmente é</th></tr>
+    <tr><td>“O documento raiz não parece ser um METS”</td><td>o arquivo escolhido não é um METS — talvez o <code>premis.xml</code> ou um <code>metadata.csv</code> do pacote, e não o <code>METS.&lt;uuid&gt;.xml</code> da raiz</td></tr>
+    <tr><td>“Erro ao analisar XML”</td><td>o arquivo está truncado ou corrompido; vale reextrair o AIP</td></tr>
+    <tr><td>“não encontrado no índice de dmdSec/amdSec”</td><td>o <code>mets:file</code> aponta, por <code>DMDID</code> ou <code>ADMID</code>, para um bloco que não existe no documento — referência quebrada, defeito do pacote</td></tr>
+    <tr><td>“FILEID sem <code>mets:file</code> correspondente”</td><td>o <code>structMap</code> aponta para um arquivo que o <code>fileSec</code> não declara — também um defeito do pacote</td></tr>
+    <tr><td>A aba Direitos está vazia</td><td>o AIP não tem direitos declarados. É comum: só existem se alguém os informou na transferência ou depois</td></tr>
+    <tr><td>Um bloco de <code>amdSec</code> aparece só com o identificador</td><td>o bloco existe mas o seu conteúdo não é objeto, evento, agente nem direito PREMIS — é de um tipo que este leitor não detalha</td></tr>
+  </table>
+
+  <footer>
+    METSReader — <a href="index.html">voltar ao programa</a> ·
+    código em <a href="https://github.com/tatycs/METSReader">github.com/tatycs/METSReader</a> ·
+    <a href="https://metadoc.com.br/">META Documentos Digitais</a>
+  </footer>
+
+</div>
+</body>
+</html>
